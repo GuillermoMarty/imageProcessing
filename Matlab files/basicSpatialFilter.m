@@ -7,7 +7,7 @@ im = double(im);
 figure,imagesc(im);
 colormap(gray(256));
 
-
+w = fspecial(
 w=[1 1 1; 1 1 1; 1 1 1]/9;
 
 % im2=imfilter(im,w,'same'); % AVR
