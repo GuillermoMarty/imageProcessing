@@ -1,0 +1,137 @@
+clc
+clear all
+close all
+
+
+ %im =imread('./test/face_good.bmp');
+ im =imread('./test/face_dark.bmp');
+ imFace = im;
+ imOG = im;
+ imMask =segmentImageFace(im);
+ imMask2 = imMask;
+ im = double(im);
+ for i = 1 : 240
+    for j = 1 : 320
+        if imMask(i,j) == 0
+            imFace(i,j,:)=0;
+        end
+    end
+end
+
+%figure, imshow(imFace);title('Mask applied'); 
+
+ims1 = (im(:,:,1)>95) & (im(:,:,2)>40) & (im(:,:,3)>20);
+ims2 = (im(:,:,1)-im(:,:,2)>15) | (im(:,:,1)-im(:,:,3)>15);
+ims3 = (im(:,:,1)-im(:,:,2)>15) & (im(:,:,1)>im(:,:,3));
+ims = ims1 & ims2 & ims3;
+
+imStock = imOG;
+for i = 1 : 240
+    for j = 1 : 320
+        if ims(i,j) < 1
+            imStock(i,j,:)=0;
+        end
+    end
+end
+%figure, imshow(imStock);title('skin detected before correction');
+
+
+igamma = ...
+vision.GammaCorrector(1.2,'Correction','gamma');
+imFace = step(igamma, imFace);
+imF1 = (imFace(:,:,1)>70) & (imFace(:,:,2)>40) & (imFace(:,:,3)>20);
+imF2 = (imFace(:,:,1)-imFace(:,:,2)>15) | (imFace(:,:,1)-imFace(:,:,3)>15);
+imF3 = (imFace(:,:,1)-imFace(:,:,2)>15) & (imFace(:,:,1)>imFace(:,:,3));
+imF = imF1 & imF2 & imF3;
+imAttempt = imOG;
+for i = 1 : 240
+    for j = 1 : 320
+        if imF(i,j) == 0 
+            imAttempt(i,j,:)=0;
+        end
+    end
+end
+%figure, imshow(imAttempt);title('skin detected using mask');
+
+ImHist = imhist(imOG);
+
+imh1 = (im(:,:,1)>70) & (im(:,:,2)>10) & (im(:,:,3)>20);
+imh2 = (im(:,:,1)-im(:,:,2)>39) | (im(:,:,1)-im(:,:,3)>50);
+imh3 = (im(:,:,1)-im(:,:,2)>37) & (im(:,:,1)>im(:,:,3));
+imh4 = (im(:,:,3)<117) & (im(:,:,1)>im(:,:,3));
+imh = imh1 & imh2 & imh3 & imh4;
+%figure,imshow(imh);
+
+imFinal = imOG;
+for i = 1 : 240
+    for j = 1 : 320
+        if imh(i,j) < 1
+            imFinal(i,j,:)=0;
+        end
+    end
+end
+%figure, imshow(imFinal);title('skin detected after threshold change');
+
+figure,subplot(3,4,1),image(imOG);
+colormap(gray(256));
+title('Original Image');
+axis image;
+axis off;
+
+subplot(3,3,2),imagesc(ims);
+colormap(gray(256));
+title('Original Skin Detection');
+axis image;
+axis off;
+
+subplot(3,3,3),imagesc(imStock);
+colormap(gray(256));
+title('Original Skin Detected');
+axis image;
+axis off;
+
+subplot(3,3,4),imshow(imMask);
+colormap(gray(256));
+title('Mask via Image Segmenter');
+axis image;
+axis off;
+
+subplot(3,3,5),imagesc(imF);
+colormap(gray(256));
+title('Skin Detection-Mask');
+axis image;
+axis off;
+
+subplot(3,3,6),imagesc(imAttempt);
+colormap(gray(256));
+title('Final-Mask');
+axis image;
+axis off;
+
+imHist = imread('lumHist.png');
+subplot(3,3,7),imshow(imHist);
+colormap(gray(256));
+title('Histogram Luminance');
+axis image;
+axis off;
+
+subplot(3,3,8),imagesc(imh);
+colormap(gray(256));
+title('Skin Detection-New thresholds');
+axis image;
+axis off;
+
+
+axis off;
+
+subplot(3,3,9),imagesc(imFinal);
+colormap(gray(256));
+title('Final-New Thresholds (Best)');
+axis image;
+axis off;
+
+
+
+
+
+ 
