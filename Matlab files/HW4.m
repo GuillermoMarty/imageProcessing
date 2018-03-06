@@ -24,9 +24,11 @@ for i = 1 : 240
     end
 end
 
+%generate the three types of noise in the requirements
 gausNoise = imnoise(grayImage4,'gaussian',0,0.01)
 snpNoise = imnoise(grayImage4,'salt & pepper', 0.02);
 uniNoise = (grayImage4 + rand(size(grayImage4)))/2;
+
 
 gausRemoved = wiener2(gausNoise,[8 8]);
 %h = ones(5,5) / 25;
@@ -38,21 +40,20 @@ gausRemoved = wiener2(gausNoise,[8 8]);
 
 %M = uniNoise - rand(size(uniNoise));
 %N = (medfilt2(uniNoise)+M);
-O = wiener2(gausNoise,[8 8]);
+O = wiener2(uniNoise,[8 8]);
 %P = imgaussfilt(uniNoise)
 uniRemoved=double(O);
-S_=size(uniRemoved);
+S=size(uniRemoved);
 Mask=7;
-for i=1:S_(1)
+for i=1:S(1)
     j=1;
-    while(j<S_(2)-Mask)
+    while(j<S(2)-Mask)
         T(1:Mask)=uniRemoved(i,j:j+(Mask-1));
         Data=harmmean(T);
         uniRemoved(i,j+1)=Data;
         j=j+1;
-    end;
-end;
-%imshow(uint8(Im));
+    end
+end
 
 snpRemoved = medfilt2(snpNoise);
 
@@ -84,8 +85,8 @@ subplot(5,3,12),imshow(snpRemoved);
 title('Salt-Pepper Removed');
 
 subplot(5,3,13),histogram(gausRemoved);
-title('Gaussian Histogram');
+title('Gaussian Removed Histogram');
 subplot(5,3,14),histogram(uniRemoved);
-title('Uniform Histogram');
+title('Uniform Removed Histogram');
 subplot(5,3,15),histogram(snpRemoved);
-title('Salt-Pepper Histogram');
+title('Salt-Pepper Removed Histogram');
